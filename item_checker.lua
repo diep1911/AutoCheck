@@ -34,7 +34,7 @@ spawn(function()
             local json = HttpService:JSONEncode(data)
 
             local response = http_request({
-                Url = "http://127.0.0.1:5000/",
+                Url = "Url = "http://192.168.1.37:5000/",
                 Method = "POST",
                 Headers = {
                     ["Content-Type"] = "application/json"
