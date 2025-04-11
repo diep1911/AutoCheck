@@ -27,14 +27,6 @@ title.TextSize = 20
 title.TextStrokeTransparency = 0.8
 title.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
 
-local mainFrame = Instance.new("Frame", screenGui)
-mainFrame.Position = UDim2.new(0.2, 0, 0, 0) -- Center horizontally (20% from left), top of screen
-mainFrame.Size = UDim2.new(0.6, 0, 0.3, 0) -- 60% width, 30% height
-mainFrame.BackgroundColor3 = Color3.fromRGB(255, 215, 0) -- Gold/Yellow color
-mainFrame.BorderSizePixel = 0
-mainFrame.BackgroundTransparency = 0.1
-Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
-
 local function createItemLabel(name, index)
     local label = Instance.new("TextLabel", mainFrame)
     label.Size = UDim2.new(0.45, -20, 0, 25)
