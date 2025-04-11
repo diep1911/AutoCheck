@@ -79,6 +79,9 @@ local function getAccountData()
 end
 
 -- Cập nhật UI mỗi 10s
+local HttpService = game:GetService("HttpService")
+
+-- Gửi dữ liệu chính và update UI mỗi 10s
 spawn(function()
     while true do
         local data = getAccountData()
@@ -87,7 +90,7 @@ spawn(function()
     end
 end)
 
--- Gửi dữ liệu về server Flask mỗi 60s
+-- Gửi dữ liệu chi tiết mỗi 60s
 spawn(function()
     while true do
         local success, err = pcall(function()
@@ -107,6 +110,6 @@ spawn(function()
             rconsolewarn("[❌ LỖI]: " .. tostring(err))
         end
 
-        wait(60)
+        wait(30)
     end
 end)
