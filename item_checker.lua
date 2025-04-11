@@ -1,135 +1,134 @@
---// Config Webhook
-local webhookURL = "https://discord.com/api/webhooks/1360170962540040232/9wvZBXe3aStVhV5iR7ml3Z7YXmouge3a8Z7d6h-3-bjNjk09gEOgT3TYzhGufCYe1NK"
+--// CONFIG
+local webhookInput = "http://127.0.0.1:5000/"
 
---// Setup
+--// Services
 local player = game.Players.LocalPlayer
 local HttpService = game:GetService("HttpService")
 local request = http_request or syn and syn.request or http and http.request
 
---// UI Khung
-local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-ScreenGui.Name = "ItemCheckerUI"
-ScreenGui.ResetOnSpawn = false
+--// UI tạo bảng hiện trạng thái item
+local function createUI()
+    local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+    ScreenGui.Name = "ItemStatusGUI"
 
-local Frame = Instance.new("Frame", ScreenGui)
-Frame.Position = UDim2.new(0.8, 0, 0.3, 0)
-Frame.Size = UDim2.new(0, 220, 0, 160)
-Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-Frame.BorderSizePixel = 0
-Frame.BackgroundTransparency = 0.2
+    local Frame = Instance.new("Frame", ScreenGui)
+    Frame.Size = UDim2.new(0, 250, 0, 170)
+    Frame.Position = UDim2.new(0, 20, 0, 100)
+    Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Frame.BackgroundTransparency = 0.2
+    Frame.BorderSizePixel = 0
+    Frame.Active = true
+    Frame.Draggable = true
+    Frame.Name = "StatusFrame"
 
-local Title = Instance.new("TextLabel", Frame)
-Title.Text = "💎 AUTO ITEM CHECKER"
-Title.Size = UDim2.new(1, 0, 0, 30)
-Title.BackgroundTransparency = 1
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 14
+    local UICorner = Instance.new("UICorner", Frame)
+    UICorner.CornerRadius = UDim.new(0, 10)
 
-local items = {
-    {"Cursed Dual Katana", "Cursed Dual Katana"},
-    {"Mirror Fractal", "Mirror Fractal"},
-    {"Valkyrie Helm", "Valkyrie Helm"},
-    {"Godhuman", "Godhuman"}
-}
+    local Title = Instance.new("TextLabel", Frame)
+    Title.Text = "🔎 Item Checker by Diep1911"
+    Title.Size = UDim2.new(1, 0, 0, 30)
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.BackgroundTransparency = 1
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 14
 
-for i, item in ipairs(items) do
-    local Label = Instance.new("TextLabel", Frame)
-    Label.Position = UDim2.new(0, 10, 0, 30 + (i - 1) * 30)
-    Label.Size = UDim2.new(1, -20, 0, 25)
-    Label.BackgroundTransparency = 1
-    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Label.Font = Enum.Font.Gotham
-    Label.TextSize = 14
-    Label.TextXAlignment = Enum.TextXAlignment.Left
+    local items = {
+        {"Cursed Dual Katana", "HasCDK"},
+        {"Mirror Fractal", "Mirror"},
+        {"Valkyrie Helm", "ValkyrieHelm"},
+        {"Godhuman", "Style"}
+    }
 
-    local status = Instance.new("Frame", Label)
-    status.Size = UDim2.new(0, 15, 0, 15)
-    status.Position = UDim2.new(1, -20, 0.5, -7)
-    status.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    status.BorderSizePixel = 0
-    status.Name = "Status"
-    status.BackgroundTransparency = 0.2
-    status.ZIndex = 2
-    status:FindFirstChildOfClass("UICorner") or Instance.new("UICorner", status).CornerRadius = UDim.new(1, 0)
+    for i, data in ipairs(items) do
+        local label = Instance.new("TextLabel", Frame)
+        label.Size = UDim2.new(1, -40, 0, 30)
+        label.Position = UDim2.new(0, 10, 0, 30 * i)
+        label.Text = data[1]
+        label.TextColor3 = Color3.fromRGB(255, 255, 255)
+        label.BackgroundTransparency = 1
+        label.Font = Enum.Font.Gotham
+        label.TextSize = 14
+        label.TextXAlignment = Enum.TextXAlignment.Left
 
-    Label.Name = item[1]
-    Label.Text = "🔍 " .. item[1]
-end
-
---// Check item function
-local function checkItems()
-    local backpack = player.Backpack:GetChildren()
-    local character = player.Character and player.Character:GetChildren() or {}
-    local inventory = {}
-
-    for _, item in ipairs(backpack) do table.insert(inventory, item.Name) end
-    for _, item in ipairs(character) do table.insert(inventory, item.Name) end
-
-    for _, label in ipairs(Frame:GetChildren()) do
-        if label:IsA("TextLabel") and items[label.LayoutOrder] then
-            local itemName = label.Name
-            local status = label:FindFirstChild("Status")
-            if table.find(inventory, itemName) then
-                status.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-            else
-                status.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-            end
-        end
+        local status = Instance.new("Frame", Frame)
+        status.Size = UDim2.new(0, 20, 0, 20)
+        status.Position = UDim2.new(1, -30, 0, 30 * i + 5)
+        status.Name = data[2]
+        status.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+        Instance.new("UICorner", status).CornerRadius = UDim.new(1, 0)
     end
 end
 
---// Webhook sender
-local function sendToDiscord()
-    if not request then warn("❌ Không hỗ trợ gửi HTTP.") return end
+--// Cập nhật màu trạng thái
+local function updateUI()
+    local Frame = game.CoreGui:FindFirstChild("ItemStatusGUI") and game.CoreGui.ItemStatusGUI:FindFirstChild("StatusFrame")
+    if not Frame then return end
 
-    local data = {
-        ["username"] = "Blox Fruits Logger",
-        ["embeds"] = {{
-            ["title"] = "📦 Thông Tin Tài Khoản",
-            ["color"] = 0x00ff99,
-            ["fields"] = {
-                {
-                    ["name"] = "👤 Tên tài khoản",
-                    ["value"] = player.Name,
-                    ["inline"] = true
-                },
-                {
-                    ["name"] = "🧬 Level",
-                    ["value"] = tostring(player.Data.Level.Value),
-                    ["inline"] = true
-                },
-                {
-                    ["name"] = "💰 Beli",
-                    ["value"] = tostring(player.Data.Beli.Value),
-                    ["inline"] = true
-                },
-                {
-                    ["name"] = "💎 Fragments",
-                    ["value"] = tostring(player.Data.Fragments.Value),
-                    ["inline"] = true
-                }
-            },
-            ["footer"] = {
-                ["text"] = "AutoCheck Script by Diep1911"
-            },
-            ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
-        }}
-    }
+    local hasCDK = player.Backpack:FindFirstChild("Cursed Dual Katana") or player.Character:FindFirstChild("Cursed Dual Katana")
+    local hasMirror = player.Backpack:FindFirstChild("Mirror Fractal") or player.Character:FindFirstChild("Mirror Fractal")
+    local hasHelm = player.Character:FindFirstChild("Valkyrie Helm") or player.Backpack:FindFirstChild("Valkyrie Helm")
+    local hasGodHuman = player.Character:FindFirstChild("Godhuman") or player.Backpack:FindFirstChild("Godhuman")
 
-    request({
-        Url = webhookURL,
-        Method = "POST",
-        Headers = {["Content-Type"] = "application/json"},
-        Body = HttpService:JSONEncode(data)
-    })
+    local function setStatus(name, status)
+        local circle = Frame:FindFirstChild(name)
+        if circle then
+            circle.BackgroundColor3 = status and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+        end
+    end
+
+    setStatus("HasCDK", hasCDK)
+    setStatus("Mirror", hasMirror)
+    setStatus("ValkyrieHelm", hasHelm)
+    setStatus("Style", hasGodHuman)
 end
 
---// Auto chạy mỗi phút
+--// Gửi thông tin vào server nội bộ (Flask Bot)
+function sendToLocalBot()
+    if not request then return warn("❌ Không có http_request") end
+
+    local payload = {
+        username = player.Name,
+        level = player.Data.Level.Value,
+        beli = player.Data.Beli.Value,
+        fragment = player.Data.Fragments.Value,
+        timestamp = os.time(),
+        items = {
+            CDK = player.Backpack:FindFirstChild("Cursed Dual Katana") or player.Character:FindFirstChild("Cursed Dual Katana") ~= nil,
+            Mirror = player.Backpack:FindFirstChild("Mirror Fractal") or player.Character:FindFirstChild("Mirror Fractal") ~= nil,
+            Valk = player.Character:FindFirstChild("Valkyrie Helm") or player.Backpack:FindFirstChild("Valkyrie Helm") ~= nil,
+            Godhuman = player.Character:FindFirstChild("Godhuman") or player.Backpack:FindFirstChild("Godhuman") ~= nil
+        }
+    }
+
+    local ok, body = pcall(function()
+        return request({
+            Url = webhookInput,
+            Method = "POST",
+            Headers = { ["Content-Type"] = "application/json" },
+            Body = HttpService:JSONEncode({ content = HttpService:JSONEncode(payload) })
+        })
+    end)
+
+    if not ok then
+        warn("Không thể gửi dữ liệu tới bot nội bộ")
+    end
+end
+
+--// Khởi tạo giao diện
+createUI()
+
+--// Vòng lặp cập nhật UI
 task.spawn(function()
     while true do
-        checkItems()
-        sendToDiscord()
-        task.wait(60) -- mỗi 60 giây gửi 1 lần
+        updateUI()
+        wait(3)
+    end
+end)
+
+--// Gửi thông tin đến Flask bot mỗi 2 phút
+task.spawn(function()
+    while true do
+        sendToLocalBot()
+        wait(120)
     end
 end)
