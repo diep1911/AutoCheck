@@ -30,14 +30,12 @@ spawn(function()
             local data = getAccountData()
 
             http_request({
-                Url = "http://127.0.0.1:5000/", -- Dùng ngrok nếu gửi qua mạng
+                Url = "http://127.0.0.1:5000/", -- hoặc đổi thành IP LAN/ngrok nếu cần
                 Method = "POST",
                 Headers = {
                     ["Content-Type"] = "application/json"
                 },
-                Body = HttpService:JSONEncode({
-                    content = HttpService:JSONEncode(data)
-                })
+                Body = HttpService:JSONEncode(data) -- ✅ KHÔNG bọc trong "content"
             })
 
             rconsoleprint("[✅ GỬI DỮ LIỆU]: " .. data.username .. "\n")
@@ -47,6 +45,6 @@ spawn(function()
             rconsolewarn("[❌ LỖI]: " .. tostring(err))
         end
 
-        wait(60) -- Đợi 60 giây
+        wait(60) -- ⏳ gửi mỗi 60 giây
     end
 end)
