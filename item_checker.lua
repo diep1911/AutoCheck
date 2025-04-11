@@ -7,6 +7,7 @@ local http_request = http_request or request or (syn and syn.request)
 -- UI hiển thị trạng thái item cá nhân
 local screenGui = Instance.new("ScreenGui", game.CoreGui)
 screenGui.Name = "ItemStatusUI"
+screenGui.IgnoreGuiInset = true -
 
 local mainFrame = Instance.new("Frame", screenGui)
 mainFrame.Position = UDim2.new(0, 10, 0, 100)
@@ -17,17 +18,27 @@ mainFrame.BackgroundTransparency = 0.2
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
 
 local title = Instance.new("TextLabel", mainFrame)
-title.Size = UDim2.new(1, 0, 0, 25)
+title.Size = UDim2.new(1, 0, 0, 30)
 title.BackgroundTransparency = 1
-title.Text = "📦 Item Tracker"
+title.Text = "📦 Item Tracker - " .. LocalPlayer.Name -- Display account name
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Font = Enum.Font.GothamSemibold
-title.TextSize = 18
+title.TextSize = 20
+title.TextStrokeTransparency = 0.8
+title.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+
+local mainFrame = Instance.new("Frame", screenGui)
+mainFrame.Position = UDim2.new(0.2, 0, 0, 0) -- Center horizontally (20% from left), top of screen
+mainFrame.Size = UDim2.new(0.6, 0, 0.3, 0) -- 60% width, 30% height
+mainFrame.BackgroundColor3 = Color3.fromRGB(255, 215, 0) -- Gold/Yellow color
+mainFrame.BorderSizePixel = 0
+mainFrame.BackgroundTransparency = 0.1
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
 
 local function createItemLabel(name, index)
     local label = Instance.new("TextLabel", mainFrame)
-    label.Size = UDim2.new(1, -20, 0, 20)
-    label.Position = UDim2.new(0, 10, 0, 30 + index * 22)
+    label.Size = UDim2.new(0.45, -20, 0, 25)
+    label.Position = UDim2.new(0, 20, 0, 40 + index * 30) -- Adjusted spacing
     label.BackgroundTransparency = 1
     label.Name = name .. "_Label"
     label.Text = name .. ": 🔴"
@@ -35,6 +46,8 @@ local function createItemLabel(name, index)
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.TextSize = 16
     label.TextXAlignment = Enum.TextXAlignment.Left
+    label.TextStrokeTransparency = 0.8
+    label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     return label
 end
 
