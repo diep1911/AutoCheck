@@ -1,85 +1,123 @@
--- DANH SÁCH ITEM
-local itemList = {
-    "Cursed Dual Katana",
-    "Mirror Fractal",
-    "Valkyrie Helm",
-    "Godhuman"
-}
+local webhookURL = "https://discord.com/api/webhooks/1360170962540040232/9wvZBXe3aStVhV5iR7ml3Z7YXmouge3a8Z7d6h-3-bjNjk09gEOgT3TYzhGufCYe1NKm" -- Thay link webhook tại đây
 
-local foundItems = {}
-local player = game:GetService("Players").LocalPlayer
+local player = game.Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
 
--- KIỂM TRA ITEM
-for _, item in pairs(player.Backpack:GetChildren()) do
-    foundItems[item.Name] = true
+-- Gửi thông tin về Discord
+local function sendToDiscord()
+    local data = {
+        ["username"] = "Blox Fruits Logger",
+        ["embeds"] = {{
+            ["title"] = "📦 Thông Tin Tài Khoản",
+            ["color"] = 0x3498db,
+            ["fields"] = {
+                {
+                    ["name"] = "👤 Tên tài khoản",
+                    ["value"] = player.Name,
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = "🧬 Level",
+                    ["value"] = tostring(player.Data.Level.Value),
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = "💰 Beli",
+                    ["value"] = tostring(player.Data.Beli.Value),
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = "💎 Fragments",
+                    ["value"] = tostring(player.Data.Fragments.Value),
+                    ["inline"] = true
+                }
+            },
+            ["footer"] = {
+                ["text"] = "Gửi từ AutoCheck Script 🌐"
+            },
+            ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        }}
+    }
+
+    local jsonData = HttpService:JSONEncode(data)
+
+    syn.request({
+        Url = webhookURL,
+        Method = "POST",
+        Headers = {
+            ["Content-Type"] = "application/json"
+        },
+        Body = jsonData
+    })
 end
-for _, item in pairs(player.Character:GetChildren()) do
-    foundItems[item.Name] = true
+
+sendToDiscord()
+
+-- Hàm kiểm tra item
+local function HasItem(item)
+    for _, v in pairs(player.Backpack:GetChildren()) do
+        if v.Name == item then return true end
+    end
+    for _, v in pairs(player.Character:GetChildren()) do
+        if v.Name == item then return true end
+    end
+    return false
 end
 
--- XÓA GUI CŨ
-pcall(function()
-    game.CoreGui:FindFirstChild("ItemStatusGUI"):Destroy()
-end)
+-- Hàm kiểm tra Godhuman
+local function HasGodHuman()
+    return player.Character:FindFirstChild("Godhuman") or player.Backpack:FindFirstChild("Godhuman")
+end
 
--- TẠO GUI
-local gui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-gui.Name = "ItemStatusGUI"
-gui.ResetOnSpawn = false
+-- Giao diện
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+ScreenGui.Name = "ItemCheckGUI"
 
--- FRAME CHÍNH
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 260, 0, 220)
-frame.Position = UDim2.new(0, 30, 0, 100)
-frame.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
-frame.BackgroundTransparency = 0.1
-frame.BorderSizePixel = 0
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Position = UDim2.new(0.75, 0, 0.2, 0)
+Frame.Size = UDim2.new(0, 300, 0, 180)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Frame.BorderSizePixel = 0
+Frame.BackgroundTransparency = 0.2
 
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
-Instance.new("UIStroke", frame).Color = Color3.fromRGB(255, 215, 0)
+local UIListLayout = Instance.new("UIListLayout", Frame)
+UIListLayout.Padding = UDim.new(0, 10)
+UIListLayout.FillDirection = Enum.FillDirection.Vertical
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Top
 
--- TIÊU ĐỀ
-local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1, 0, 0, 35)
-title.Position = UDim2.new(0, 0, 0, 0)
-title.Text = "📋 Item Status"
-title.BackgroundTransparency = 1
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.Font = Enum.Font.GothamBold
-title.TextSize = 20
-title.TextStrokeTransparency = 0.8
+local UICorner = Instance.new("UICorner", Frame)
+UICorner.CornerRadius = UDim.new(0, 12)
 
--- TÊN NGƯỜI DÙNG
-local name = Instance.new("TextLabel", frame)
-name.Size = UDim2.new(1, 0, 0, 20)
-name.Position = UDim2.new(0, 0, 0, 35)
-name.Text = "👑 Made for: " .. player.Name
-name.TextColor3 = Color3.fromRGB(255, 223, 0)
-name.BackgroundTransparency = 1
-name.Font = Enum.Font.Gotham
-name.TextSize = 14
-
--- TẠO DANH SÁCH ITEM
-for i, itemName in ipairs(itemList) do
-    local row = Instance.new("Frame", frame)
+-- Tạo 1 dòng hiện item
+local function CreateItemRow(name, has)
+    local row = Instance.new("Frame", Frame)
     row.Size = UDim2.new(1, -20, 0, 25)
-    row.Position = UDim2.new(0, 10, 0, 60 + (i - 1) * 30)
     row.BackgroundTransparency = 1
 
     local dot = Instance.new("Frame", row)
-    dot.Size = UDim2.new(0, 12, 0, 12)
-    dot.Position = UDim2.new(0, 0, 0.5, -6)
-    dot.BackgroundColor3 = foundItems[itemName] and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    dot.Size = UDim2.new(0, 20, 0, 20)
+    dot.Position = UDim2.new(0, 0, 0.1, 0)
+    dot.BackgroundColor3 = has and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
     dot.BorderSizePixel = 0
-    Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
+    dot.BackgroundTransparency = 0
+    dot.Name = "StatusDot"
+
+    local dotCorner = Instance.new("UICorner", dot)
+    dotCorner.CornerRadius = UDim.new(1, 0)
 
     local label = Instance.new("TextLabel", row)
-    label.Size = UDim2.new(1, -25, 1, 0)
-    label.Position = UDim2.new(0, 20, 0, 0)
-    label.Text = itemName
+    label.Text = name
+    label.Position = UDim2.new(0, 30, 0, 0)
+    label.Size = UDim2.new(1, -30, 1, 0)
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextScaled = true
     label.BackgroundTransparency = 1
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 16
-    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Font = Enum.Font.GothamBold
 end
+
+-- Thêm từng dòng item
+CreateItemRow("Cursed Dual Katana", HasItem("Cursed Dual Katana"))
+CreateItemRow("Mirror Fractal", HasItem("Mirror Fractal"))
+CreateItemRow("Valkyrie Helm", HasItem("Valkyrie Helm"))
+CreateItemRow("Godhuman", HasGodHuman())
