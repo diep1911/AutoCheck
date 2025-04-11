@@ -22,69 +22,64 @@ pcall(function()
     game.CoreGui:FindFirstChild("ItemStatusGUI"):Destroy()
 end)
 
--- TẠO GUI MỚI
-local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-ScreenGui.Name = "ItemStatusGUI"
-ScreenGui.ResetOnSpawn = false
+-- TẠO GUI
+local gui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+gui.Name = "ItemStatusGUI"
+gui.ResetOnSpawn = false
 
--- KHUNG CHÍNH
-local Frame = Instance.new("Frame", ScreenGui)
-Frame.Size = UDim2.new(0, 260, 0, 220)
-Frame.Position = UDim2.new(0, 30, 0, 100)
-Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-Frame.BackgroundTransparency = 0
-Frame.BorderSizePixel = 0
+-- FRAME CHÍNH
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 260, 0, 220)
+frame.Position = UDim2.new(0, 30, 0, 100)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+frame.BackgroundTransparency = 0.1
+frame.BorderSizePixel = 0
 
-local UICorner = Instance.new("UICorner", Frame)
-UICorner.CornerRadius = UDim.new(0, 10)
-
-local UIStroke = Instance.new("UIStroke", Frame)
-UIStroke.Color = Color3.fromRGB(255, 208, 0)
-UIStroke.Thickness = 1.2
-UIStroke.Transparency = 0.4
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+Instance.new("UIStroke", frame).Color = Color3.fromRGB(255, 215, 0)
 
 -- TIÊU ĐỀ
-local Title = Instance.new("TextLabel", Frame)
-Title.Size = UDim2.new(1, 0, 0, 35)
-Title.Text = "📋 Item Status"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.BackgroundTransparency = 1
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 20
-Title.TextStrokeTransparency = 0.7
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 35)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.Text = "📋 Item Status"
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+title.TextStrokeTransparency = 0.8
 
--- TÊN ANH
-local NameTag = Instance.new("TextLabel", Frame)
-NameTag.Size = UDim2.new(1, 0, 0, 20)
-NameTag.Position = UDim2.new(0, 0, 0, 35)
-NameTag.Text = "👑 Made for: DYLAN " .. player.Name
-NameTag.TextColor3 = Color3.fromRGB(255, 208, 0)
-NameTag.BackgroundTransparency = 1
-NameTag.Font = Enum.Font.GothamMedium
-NameTag.TextSize = 14
+-- TÊN NGƯỜI DÙNG
+local name = Instance.new("TextLabel", frame)
+name.Size = UDim2.new(1, 0, 0, 20)
+name.Position = UDim2.new(0, 0, 0, 35)
+name.Text = "👑 Made for: " .. player.Name
+name.TextColor3 = Color3.fromRGB(255, 223, 0)
+name.BackgroundTransparency = 1
+name.Font = Enum.Font.Gotham
+name.TextSize = 14
 
--- DANH SÁCH ITEM
+-- TẠO DANH SÁCH ITEM
 for i, itemName in ipairs(itemList) do
-    local Row = Instance.new("Frame", Frame)
-    Row.Size = UDim2.new(1, -20, 0, 25)
-    Row.Position = UDim2.new(0, 10, 0, 60 + (i - 1) * 30)
-    Row.BackgroundTransparency = 1
+    local row = Instance.new("Frame", frame)
+    row.Size = UDim2.new(1, -20, 0, 25)
+    row.Position = UDim2.new(0, 10, 0, 60 + (i - 1) * 30)
+    row.BackgroundTransparency = 1
 
-    local Dot = Instance.new("Frame", Row)
-    Dot.Size = UDim2.new(0, 14, 0, 14)
-    Dot.Position = UDim2.new(0, 0, 0.5, -7)
-    Dot.BackgroundColor3 = foundItems[itemName] and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-    Dot.BorderSizePixel = 0
-    local DotCorner = Instance.new("UICorner", Dot)
-    DotCorner.CornerRadius = UDim.new(1, 0)
+    local dot = Instance.new("Frame", row)
+    dot.Size = UDim2.new(0, 12, 0, 12)
+    dot.Position = UDim2.new(0, 0, 0.5, -6)
+    dot.BackgroundColor3 = foundItems[itemName] and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    dot.BorderSizePixel = 0
+    Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
 
-    local Label = Instance.new("TextLabel", Row)
-    Label.Size = UDim2.new(1, -25, 1, 0)
-    Label.Position = UDim2.new(0, 20, 0, 0)
-    Label.Text = itemName
-    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Label.BackgroundTransparency = 1
-    Label.Font = Enum.Font.Gotham
-    Label.TextSize = 16
-    Label.TextXAlignment = Enum.TextXAlignment.Left
+    local label = Instance.new("TextLabel", row)
+    label.Size = UDim2.new(1, -25, 1, 0)
+    label.Position = UDim2.new(0, 20, 0, 0)
+    label.Text = itemName
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 16
+    label.TextXAlignment = Enum.TextXAlignment.Left
 end
