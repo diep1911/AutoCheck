@@ -4,33 +4,34 @@ local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local http_request = http_request or request or (syn and syn.request)
 
--- UI hiển thị trạng thái item cá nhân
+-- Tạo giao diện hiển thị trạng thái vật phẩm cá nhân
 local screenGui = Instance.new("ScreenGui", game.CoreGui)
 screenGui.Name = "ItemStatusUI"
-screenGui.IgnoreGuiInset = true -
+screenGui.IgnoreGuiInset = true -- Đảm bảo sử dụng toàn bộ màn hình, bỏ qua thanh công cụ
 
 local mainFrame = Instance.new("Frame", screenGui)
-mainFrame.Position = UDim2.new(0, 10, 0, 100)
-mainFrame.Size = UDim2.new(0, 250, 0, 120)
-mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+mainFrame.Position = UDim2.new(0.2, 0, 0, 0) -- Căn giữa ngang (20% từ trái), trên cùng màn hình
+mainFrame.Size = UDim2.new(0.6, 0, 0.3, 0) -- Rộng 60%, cao 30% màn hình
+mainFrame.BackgroundColor3 = Color3.fromRGB(255, 215, 0) -- Màu vàng
 mainFrame.BorderSizePixel = 0
-mainFrame.BackgroundTransparency = 0.2
-Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
+mainFrame.BackgroundTransparency = 0.1 -- Độ trong suốt nhẹ
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12) -- Bo góc khung
 
 local title = Instance.new("TextLabel", mainFrame)
 title.Size = UDim2.new(1, 0, 0, 30)
 title.BackgroundTransparency = 1
-title.Text = "📦 Item Tracker - " .. LocalPlayer.Name -- Display account name
+title.Text = "📦 Theo Dõi Vật Phẩm - " .. LocalPlayer.Name -- Hiển thị tên tài khoản
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Font = Enum.Font.GothamSemibold
 title.TextSize = 20
 title.TextStrokeTransparency = 0.8
-title.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+title.TextStrokeColor3 = Color3.fromRGB(0, 0, 0) -- Viền chữ đen
 
+-- Hàm tạo nhãn cho từng vật phẩm
 local function createItemLabel(name, index)
     local label = Instance.new("TextLabel", mainFrame)
     label.Size = UDim2.new(0.45, -20, 0, 25)
-    label.Position = UDim2.new(0, 20, 0, 40 + index * 30) -- Adjusted spacing
+    label.Position = UDim2.new(0, 20, 0, 40 + index * 30) -- Điều chỉnh khoảng cách
     label.BackgroundTransparency = 1
     label.Name = name .. "_Label"
     label.Text = name .. ": 🔴"
@@ -43,6 +44,7 @@ local function createItemLabel(name, index)
     return label
 end
 
+-- Tạo danh sách nhãn vật phẩm
 local labels = {
     CDK = createItemLabel("CDK", 0),
     Valk = createItemLabel("Valk", 1),
@@ -50,7 +52,7 @@ local labels = {
     Godhuman = createItemLabel("Godhuman", 3)
 }
 
--- Hàm kiểm tra item và update UI
+-- Hàm cập nhật giao diện trạng thái
 local function updateStatusUI(data)
     for name, label in pairs(labels) do
         local has = data.items[name]
@@ -64,7 +66,7 @@ local function updateStatusUI(data)
     end
 end
 
--- Hàm lấy thông tin acc
+-- Hàm lấy thông tin tài khoản
 local function getAccountData()
     return {
         username = LocalPlayer.Name,
