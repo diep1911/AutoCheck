@@ -12,15 +12,14 @@ screenGui.Parent = game:GetService("CoreGui")
 screenGui.Enabled = true
 
 local mainFrame = Instance.new("Frame", screenGui)
-mainFrame.Position = UDim2.new(0.2, 0, 0.05, 0) -- Hạ thấp 5% từ đỉnh
-mainFrame.Size = UDim2.new(0.6, 0, 0.3, 0) -- Rộng 60%, cao 30%
-mainFrame.BackgroundColor3 = Color3.fromRGB(255, 215, 0) -- Màu vàng
+mainFrame.Position = UDim2.new(0.2, 0, 0.05, 0)
+mainFrame.Size = UDim2.new(0.6, 0, 0.35, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
 mainFrame.BorderSizePixel = 0
-mainFrame.BackgroundTransparency = 0.5 -- Tăng trong suốt cho mờ ảo
+mainFrame.BackgroundTransparency = 0.5
 mainFrame.Visible = true
-Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 14) -- Bo góc mềm hơn
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 14)
 
--- Thêm viền mượt
 local stroke = Instance.new("UIStroke", mainFrame)
 stroke.Color = Color3.fromRGB(255, 255, 255)
 stroke.Thickness = 1.5
@@ -30,35 +29,40 @@ local title = Instance.new("TextLabel", mainFrame)
 title.Size = UDim2.new(1, 0, 0, 30)
 title.Position = UDim2.new(0, 0, 0, 5)
 title.BackgroundTransparency = 1
-title.Text = "✨ Theo Dõi Vật Phẩm - " .. LocalPlayer.Name
+title.Text = "✨ Theo Dõi Vật Phẩm - by Không"
 title.TextColor3 = Color3.fromRGB(240, 240, 240)
-title.Font = Enum.Font.SourceSansPro -- Font phổ biến, fallback từ Gotham
+title.Font = Enum.Font.SourceSansPro
 title.TextSize = 22
 title.TextStrokeTransparency = 0.9
 title.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
 
--- Hàm tạo nhãn cho từng vật phẩm
+local infoLabel = Instance.new("TextLabel", mainFrame)
+infoLabel.Size = UDim2.new(1, -20, 0, 20)
+infoLabel.Position = UDim2.new(0, 10, 0, 35)
+infoLabel.BackgroundTransparency = 1
+infoLabel.Text = ""
+infoLabel.Font = Enum.Font.SourceSansPro
+infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+infoLabel.TextSize = 16
+infoLabel.TextStrokeTransparency = 0.8
+infoLabel.TextXAlignment = Enum.TextXAlignment.Left
+
 local function createItemLabel(name, index)
-    local isLeftColumn = index % 2 == 0 -- Cột trái cho index chẵn
-    local colOffset = isLeftColumn and 20 or 160 -- Cột trái/phải
-    local rowIndex = math.floor(index / 2) -- Dòng 0 hoặc 1
     local label = Instance.new("TextLabel", mainFrame)
-    label.Size = UDim2.new(0.35, 0, 0, 25)
-    label.Position = UDim2.new(0, colOffset, 0, 40 + rowIndex * 30)
+    label.Size = UDim2.new(0.45, 0, 0, 25)
+    label.Position = UDim2.new(0, 20 + (index % 2) * 200, 0, 65 + math.floor(index / 2) * 30)
     label.BackgroundTransparency = 1
     label.Name = name .. "_Label"
     label.Text = name .. ": 🔴"
-    label.Font = Enum.Font.SourceSansPro -- Font phổ biến
+    label.Font = Enum.Font.SourceSansPro
     label.TextColor3 = Color3.fromRGB(240, 240, 240)
-    label.TextSize = 15
+    label.TextSize = 16
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.TextStrokeTransparency = 0.9
     label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    label.Visible = true
     return label
 end
 
--- Tạo danh sách nhãn vật phẩm
 local labels = {
     CDK = createItemLabel("CDK", 0),
     Valk = createItemLabel("Valk", 1),
@@ -66,12 +70,6 @@ local labels = {
     Godhuman = createItemLabel("Godhuman", 3)
 }
 
--- Debug để kiểm tra GUI
-print("[DEBUG] ScreenGui created: ", screenGui:IsA("ScreenGui"))
-print("[DEBUG] MainFrame parent: ", mainFrame.Parent.Name)
-print("[DEBUG] Title text: ", title.Text)
-
--- Hàm cập nhật giao diện trạng thái
 local function updateStatusUI(data)
     for name, label in pairs(labels) do
         local has = data.items[name]
@@ -83,7 +81,9 @@ local function updateStatusUI(data)
             label.TextColor3 = Color3.fromRGB(255, 50, 50)
         end
     end
+    infoLabel.Text = "👤 " .. data.username .. "  |  📈 Level: " .. data.level .. "  |  💰 Beli: " .. data.beli .. "  |  💎 Fragments: " .. data.fragment
 end
+
 
 -- Hàm lấy thông tin tài khoản
 local function getAccountData()
