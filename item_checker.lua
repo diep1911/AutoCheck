@@ -21,10 +21,10 @@ uiCorner.CornerRadius = UDim.new(0, 12)
 local title = Instance.new("TextLabel", mainFrame)
 title.Size = UDim2.new(1, 0, 0, 25)
 title.BackgroundTransparency = 1
-title.Text = "📦 Item Tracker"
+title.Text = "📦 Item Tracker - By KHÔNG"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Font = Enum.Font.GothamSemibold
-title.TextSize = 18
+title.TextSize = 30
 
 local function createItemLabel(name, index)
     local label = Instance.new("TextLabel", mainFrame)
@@ -108,5 +108,103 @@ spawn(function()
         end
 
         wait(60)
+    end
+end)
+
+-- Phần bảng trạng thái (menu) sửa lỗi
+local drawingObjects = {} -- Lưu các Drawing.Text
+
+-- Xóa các object cũ
+local function clearDrawingObjects()
+    for _, obj in pairs(drawingObjects) do
+        obj:Remove()
+    end
+    drawingObjects = {}
+end
+
+-- Hàm tính tổng chiều rộng cột đến cột i
+local function sumColWidths(colWidths, i)
+    local sum = 0
+    for j = 1, i do
+        sum = sum + colWidths[j]
+    end
+    return sum
+end
+
+-- Vẽ bảng trạng thái từ nhiều acc
+local function drawStatusBoard(players)
+    clearDrawingObjects() -- Xóa trước khi vẽ mới
+    local baseX, baseY = 10, 10 -- Gần góc trên trái
+    local rowHeight = 25
+    local colWidths = {200, 60, 80, 60, 80} -- Tăng width cho Username và Mirror
+    local headers = {"Username", "CDK", "Mirror", "Valk", "God"}
+
+    -- Debug dữ liệu nhận được
+    rconsoleprint("[DEBUG] Số người chơi nhận được: " .. #players .. "\n")
+    for i, player in ipairs(players) do
+        rconsoleprint("[DEBUG] Người chơi " .. i .. ": " .. HttpService:JSONEncode(player) .. "\n")
+    end
+
+    -- Header
+    for i, header in ipairs(headers) do
+        local text = Drawing.new("Text")
+        text.Text = header
+        text.Position = Vector2.new(baseX + sumColWidths(colWidths, i - 1), baseY)
+        text.Size = 18
+        text.Color = Color3.fromRGB(255, 255, 255)
+        text.Outline = true
+        text.Visible = true
+        table.insert(drawingObjects, text)
+    end
+
+    -- Rows
+    for row, player in ipairs(players) do
+        local y = baseY + row * rowHeight
+        local values = {
+            player.username or "Unknown",
+            player.items and player.items.CDK and "✅" or "❌",
+            player.items and player.items.Mirror and "✅" or "❌",
+            player.items and player.items.Valk and "✅" or "❌",
+            player.items and player.items.Godhuman and "✅" or "❌"
+        }
+
+        for i, value in ipairs(values) do
+            local text = Drawing.new("Text")
+            text.Text = value
+            text.Position = Vector2.new(baseX + sumColWidths(colWidths, i - 1), y)
+            text.Size = 16
+            text.Color = (value == "✅" and Color3.fromRGB(0, 255, 0)) or (value == "❌" and Color3.fromRGB(255, 0, 0)) or Color3.fromRGB(255, 255, 255)
+            text.Outline = true
+            text.Visible = true
+            table.insert(drawingObjects, text)
+        end
+    end
+end
+
+-- Lấy danh sách acc và hiển thị bảng mỗi 30s
+spawn(function()
+    if not http_request then
+        rconsolewarn("[❌ LỖI]: Executor không hỗ trợ http_request")
+        return
+    end
+    while true do
+        local success, result = pcall(function()
+            local response = http_request({
+                Url = "http://192.168.1.37:5000/status",
+                Method = "GET"
+            })
+            if response.Success then
+                return response
+            else
+                error("GET failed: " .. response.StatusCode .. " - " .. response.StatusMessage)
+            end
+        end)
+        if success then
+            local players = HttpService:JSONDecode(result.Body)
+            drawStatusBoard(players)
+        else
+            rconsolewarn("[❌ KHÔNG LẤY ĐƯỢC DANH SÁCH ACC]: " .. tostring(result) .. "\n")
+        end
+        wait(30)
     end
 end)
