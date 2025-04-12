@@ -1,18 +1,21 @@
-task.delay(5, function()
-    for _, obj in pairs(game:GetDescendants()) do
-        if not obj:IsDescendantOf(game.CoreGui) and not obj:IsDescendantOf(LocalPlayer.PlayerGui) then
-            pcall(function()
-                obj:Destroy()
-            end)
-        end
-    end
+-- Script xóa đồ họa và đặt màu xám
+local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
 
-    -- Optional: tắt camera để khỏi rung hoặc zoom lung tung
-    local cam = workspace:FindFirstChildOfClass("Camera")
-    if cam then
-        cam.CameraType = Enum.CameraType.Scriptable
-        cam.CFrame = CFrame.new(0, 0, 0)
+-- Xóa tất cả các đối tượng trong Workspace
+for _, object in pairs(Workspace:GetChildren()) do
+    if object ~= game.Players.LocalPlayer.Character then -- Không xóa nhân vật người chơi
+        object:Destroy()
     end
+end
 
-    rconsoleprint("[🧹 ĐÃ XOÁ TOÀN BỘ MAP, NHÂN VẬT, HIỆU ỨNG...]\n")
-end)
+-- Đặt màu nền thành màu xám
+Lighting.Ambient = Color3.fromRGB(128, 128, 128) -- Màu xám trung tính
+Lighting.Brightness = 1
+Lighting.GlobalShadows = false
+Workspace.Terrain:Clear() -- Xóa địa hình nếu có
+
+-- Đặt Camera để tránh lỗi
+local Camera = Workspace.CurrentCamera
+Camera.CameraType = Enum.CameraType.Fixed
+Camera.CFrame = CFrame.new(Vector3.new(0, 10, 0))
