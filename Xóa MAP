@@ -1,0 +1,55 @@
+-- Tối ưu đồ họa, giảm lag
+local function LowGraphics()
+    -- Tắt hiệu ứng hậu cảnh
+    if game:FindFirstChild("Lighting") then
+        local Lighting = game.Lighting
+        Lighting.GlobalShadows = false
+        Lighting.FogEnd = 9e9
+        Lighting.Brightness = 0
+        Lighting.ClockTime = 14
+        Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+    end
+
+    -- Xóa hiệu ứng thừa
+    for _, v in pairs(game:GetDescendants()) do
+        if v:IsA("ParticleEmitter") or v:IsA("Trail") then
+            v:Destroy()
+        elseif v:IsA("Decal") then
+            v.Transparency = 1
+        elseif v:IsA("Explosion") then
+            v.Visible = false
+        end
+    end
+
+    -- Giảm chất lượng các mesh
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v:IsA("MeshPart") or v:IsA("Part") then
+            v.Material = Enum.Material.Plastic
+            v.Reflectance = 0
+        elseif v:IsA("Texture") then
+            v:Destroy()
+        end
+    end
+
+    -- Tắt hiệu ứng biển
+    if workspace:FindFirstChild("Map") then
+        for _, v in pairs(workspace.Map:GetDescendants()) do
+            if v.Name:lower():find("water") or v.Name:lower():find("sea") then
+                if v:IsA("BasePart") then
+                    v.Transparency = 1
+                end
+            end
+        end
+    end
+
+    -- Tắt âm thanh nền
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v:IsA("Sound") then
+            v.Volume = 0
+        end
+    end
+
+    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+end
+
+LowGraphics()
