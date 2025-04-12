@@ -21,10 +21,10 @@ uiCorner.CornerRadius = UDim.new(0, 12)
 local title = Instance.new("TextLabel", mainFrame)
 title.Size = UDim2.new(1, 0, 0, 25)
 title.BackgroundTransparency = 1
-title.Text = "📦 Item Tracker - By KHÔNG"
+title.Text = "📦 Item Tracker - By Không"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Font = Enum.Font.GothamSemibold
-title.TextSize = 30
+title.TextSize = 18
 
 local function createItemLabel(name, index)
     local label = Instance.new("TextLabel", mainFrame)
@@ -112,7 +112,7 @@ spawn(function()
 end)
 
 -- Phần bảng trạng thái (menu) sửa lỗi
-local drawingObjects = {} -- Lưu các Drawing.Text
+local drawingObjects = {} -- Lưu các Drawing objects
 
 -- Xóa các object cũ
 local function clearDrawingObjects()
@@ -134,10 +134,26 @@ end
 -- Vẽ bảng trạng thái từ nhiều acc
 local function drawStatusBoard(players)
     clearDrawingObjects() -- Xóa trước khi vẽ mới
-    local baseX, baseY = 10, 10 -- Gần góc trên trái
+
+    local baseX, baseY = 850, 10 -- Góc trên bên phải (điều chỉnh theo màn hình)
     local rowHeight = 25
-    local colWidths = {200, 60, 80, 60, 80} -- Tăng width cho Username và Mirror
+    local colWidths = {200, 60, 80, 60, 80} -- Chiều rộng cột
     local headers = {"Username", "CDK", "Mirror", "Valk", "God"}
+    local padding = 10 -- Khoảng cách khung so với bảng
+
+    -- Tính chiều cao và chiều rộng của bảng
+    local tableWidth = sumColWidths(colWidths, #colWidths - 1) + colWidths[#colWidths]
+    local tableHeight = rowHeight * (#players + 1) -- +1 cho header
+
+    -- Vẽ khung trắng
+    local frame = Drawing.new("Square")
+    frame.Position = Vector2.new(baseX - padding, baseY - padding)
+    frame.Size = Vector2.new(tableWidth + 2 * padding, tableHeight + 2 * padding)
+    frame.Color = Color3.fromRGB(255, 255, 255) -- Màu trắng
+    frame.Thickness = 2 -- Độ dày khung
+    frame.Filled = false -- Không tô màu bên trong
+    frame.Visible = true
+    table.insert(drawingObjects, frame)
 
     -- Debug dữ liệu nhận được
     rconsoleprint("[DEBUG] Số người chơi nhận được: " .. #players .. "\n")
