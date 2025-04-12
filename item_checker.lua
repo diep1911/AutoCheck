@@ -4,7 +4,7 @@ local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local http_request = http_request or request or (syn and syn.request)
 
--- UI hiển thị trạng thái item cá nhân
+-- UI hiển thị trạng thái item
 local screenGui = Instance.new("ScreenGui", game.CoreGui)
 screenGui.Name = "ItemStatusUI"
 
@@ -14,7 +14,9 @@ mainFrame.Size = UDim2.new(0, 250, 0, 120)
 mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 mainFrame.BorderSizePixel = 0
 mainFrame.BackgroundTransparency = 0.2
-Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
+
+local uiCorner = Instance.new("UICorner", mainFrame)
+uiCorner.CornerRadius = UDim.new(0, 12)
 
 local title = Instance.new("TextLabel", mainFrame)
 title.Size = UDim2.new(1, 0, 0, 25)
@@ -76,7 +78,10 @@ local function getAccountData()
     }
 end
 
--- Gửi dữ liệu cá nhân và update UI mỗi 10s
+-- Cập nhật UI mỗi 10s
+local HttpService = game:GetService("HttpService")
+
+-- Gửi dữ liệu chính và update UI mỗi 10s
 spawn(function()
     while true do
         local data = getAccountData()
@@ -85,82 +90,26 @@ spawn(function()
     end
 end)
 
--- Gửi lên server mỗi 30s
+-- Gửi dữ liệu chi tiết mỗi 60s
 spawn(function()
     while true do
         local success, err = pcall(function()
             local data = getAccountData()
-            http_request({
+            local response = http_request({
                 Url = "http://192.168.1.37:5000/",
                 Method = "POST",
-                Headers = {["Content-Type"] = "application/json"},
+                Headers = {
+                    ["Content-Type"] = "application/json"
+                },
                 Body = HttpService:JSONEncode(data)
             })
             rconsoleprint("[✅ GỬI]: " .. data.username .. "\n")
         end)
-        if not success then rconsolewarn("[❌ LỖI]: " .. tostring(err)) end
-        wait(30)
-    end
-end)
 
--- Vẽ bảng trạng thái từ nhiều acc (nhận từ server)
-local function drawStatusBoard(players)
-    local baseX, baseY = 350, 100
-    local rowHeight = 22
-    local colWidths = {150, 50, 60, 60, 80}
-    local headers = {"Username", "CDK", "Mirror", "Valk", "God"}
-
-    -- Header
-    for i, header in ipairs(headers) do
-        local text = Drawing.new("Text")
-        text.Text = header
-        text.Position = Vector2.new(baseX + (i == 1 and 0 or colWidths[i - 1]), baseY)
-        text.Size = 16
-        text.Color = Color3.fromRGB(255, 255, 255)
-        text.Outline = true
-        text.Visible = true
-    end
-
-    -- Rows
-    for row, player in ipairs(players) do
-        local y = baseY + row * rowHeight
-        local values = {
-            player.username,
-            player.items.CDK and "✅" or "❌",
-            player.items.Mirror and "✅" or "❌",
-            player.items.Valk and "✅" or "❌",
-            player.items.Godhuman and "✅" or "❌"
-        }
-
-        for i, value in ipairs(values) do
-            local text = Drawing.new("Text")
-            text.Text = value
-            text.Position = Vector2.new(baseX + (i == 1 and 0 or colWidths[i - 1]), y)
-            text.Size = 16
-            text.Color = (value == "✅" and Color3.fromRGB(0, 255, 0)) or (value == "❌" and Color3.fromRGB(255, 0, 0)) or Color3.fromRGB(255, 255, 255)
-            text.Outline = true
-            text.Visible = true
-        end
-    end
-end
-
--- Lấy danh sách acc và hiển thị bảng mỗi 30s
-spawn(function()
-    while true do
-        local success, result = pcall(function()
-            return http_request({
-                Url = "http://192.168.1.37:5000/status", -- endpoint này phải trả JSON list
-                Method = "GET"
-            })
-        end)
-
-        if success then
-            local players = HttpService:JSONDecode(result.Body)
-            drawStatusBoard(players)
-        else
-            rconsolewarn("[❌ KHÔNG LẤY ĐƯỢC DANH SÁCH ACC]")
+        if not success then
+            rconsolewarn("[❌ LỖI]: " .. tostring(err))
         end
 
         wait(30)
     end
-end)
+end) 
