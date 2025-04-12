@@ -4,23 +4,30 @@ local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local http_request = http_request or request or (syn and syn.request)
 
+local SERVER_URL = "http://192.168.1.37:5000/" -- Dễ thay đổi
+
 -- Tạo giao diện hiển thị trạng thái vật phẩm cá nhân
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ItemStatusUI"
 screenGui.IgnoreGuiInset = true
-screenGui.Parent = game:GetService("CoreGui")
+local success, err = pcall(function()
+    screenGui.Parent = game:GetService("CoreGui")
+end)
+if not success then
+    warn("[⚠️ LỖI]: Không thể đặt UI vào CoreGui, thử PlayerGui")
+    screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+end
 screenGui.Enabled = true
 
 local mainFrame = Instance.new("Frame", screenGui)
-mainFrame.Position = UDim2.new(0.02, 0, 0.02, 0) -- Gần góc trên bên trái (2% từ cạnh)
-mainFrame.Size = UDim2.new(0.25, 0, 0.15, 0) -- Rộng 25%, cao 15% (nhỏ hơn)
-mainFrame.BackgroundColor3 = Color3.fromRGB(255, 215, 0) -- Giữ màu vàng
+mainFrame.Position = UDim2.new(0.95, 0, 0.5, 0)
+mainFrame.Size = UDim2.new(0.35, 0, 0.1, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 mainFrame.BorderSizePixel = 0
-mainFrame.BackgroundTransparency = 0.5 -- Giữ độ trong suốt
+mainFrame.BackgroundTransparency = 0.5
 mainFrame.Visible = true
-Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10) -- Giảm góc bo tròn cho phù hợp kích thước nhỏBo góc mềm hơn
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10)
 
--- Thêm viền mượt
 local stroke = Instance.new("UIStroke", mainFrame)
 stroke.Color = Color3.fromRGB(255, 255, 255)
 stroke.Thickness = 1.5
@@ -32,23 +39,22 @@ title.Position = UDim2.new(0, 0, 0, 5)
 title.BackgroundTransparency = 1
 title.Text = "✨ Theo Dõi Vật Phẩm - by KHÔNG " .. LocalPlayer.Name
 title.TextColor3 = Color3.fromRGB(240, 240, 240)
-title.Font = Enum.Font.SourceSansPro -- Font phổ biến, fallback từ Gotham
+title.Font = Enum.Font.SourceSansPro
 title.TextSize = 40
 title.TextStrokeTransparency = 0.9
 title.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
 
--- Hàm tạo nhãn cho từng vật phẩm
 local function createItemLabel(name, index)
-    local isLeftColumn = index % 2 == 0 -- Cột trái cho index chẵn
-    local colOffset = isLeftColumn and 20 or 160 -- Cột trái/phải
-    local rowIndex = math.floor(index / 2) -- Dòng 0 hoặc 1
+    local isLeftColumn = index % 2 == 0
+    local colOffset = isLeftColumn and 20 or 160
+    local rowIndex = math.floor(index / 2)
     local label = Instance.new("TextLabel", mainFrame)
     label.Size = UDim2.new(0.35, 0, 0, 25)
     label.Position = UDim2.new(0, colOffset, 0, 40 + rowIndex * 30)
     label.BackgroundTransparency = 1
     label.Name = name .. "_Label"
     label.Text = name .. ": 🔴"
-    label.Font = Enum.Font.SourceSansPro -- Font phổ biến
+    label.Font = Enum.Font.SourceSansPro
     label.TextColor3 = Color3.fromRGB(240, 240, 240)
     label.TextSize = 15
     label.TextXAlignment = Enum.TextXAlignment.Left
@@ -58,7 +64,6 @@ local function createItemLabel(name, index)
     return label
 end
 
--- Tạo danh sách nhãn vật phẩm
 local labels = {
     CDK = createItemLabel("CDK", 0),
     Valk = createItemLabel("Valk", 1),
@@ -66,12 +71,10 @@ local labels = {
     Godhuman = createItemLabel("Godhuman", 3)
 }
 
--- Debug để kiểm tra GUI
 print("[DEBUG] ScreenGui created: ", screenGui:IsA("ScreenGui"))
 print("[DEBUG] MainFrame parent: ", mainFrame.Parent.Name)
 print("[DEBUG] Title text: ", title.Text)
 
--- Hàm cập nhật giao diện trạng thái
 local function updateStatusUI(data)
     for name, label in pairs(labels) do
         local has = data.items[name]
@@ -85,9 +88,8 @@ local function updateStatusUI(data)
     end
 end
 
--- Hàm lấy thông tin tài khoản
 local function getAccountData()
-    return {
+    local data = {
         username = LocalPlayer.Name,
         level = LocalPlayer.Data.Level.Value,
         beli = LocalPlayer.Data.Beli.Value,
@@ -97,12 +99,13 @@ local function getAccountData()
             CDK = (LocalPlayer.Backpack:FindFirstChild("Cursed Dual Katana") ~= nil) or (LocalPlayer.Character:FindFirstChild("Cursed Dual Katana") ~= nil),
             Valk = (LocalPlayer.Backpack:FindFirstChild("Valkyrie Helm") ~= nil) or (LocalPlayer.Character:FindFirstChild("Valkyrie Helm") ~= nil),
             Mirror = (LocalPlayer.Backpack:FindFirstChild("Mirror Fractal") ~= nil) or (LocalPlayer.Character:FindFirstChild("Mirror Fractal") ~= nil),
-            Godhuman = (LocalPlayer.Backpack:FindFirstChild("Godhuman") ~= nil) or (LocalPlayer.Character:FindFirstChild("Godhuman") ~= nil)
+            Godhuman = false -- TODO: Kiểm tra fighting style đúng cách
         }
     }
+    rconsoleprint("[DEBUG] Dữ liệu gửi: " .. HttpService:JSONEncode(data) .. "\n")
+    return data
 end
 
--- Gửi dữ liệu cá nhân và update UI mỗi 10s
 spawn(function()
     while true do
         local data = getAccountData()
@@ -111,32 +114,48 @@ spawn(function()
     end
 end)
 
--- Gửi lên server mỗi 30s
 spawn(function()
+    if not http_request then
+        rconsolewarn("[❌ LỖI]: Executor không hỗ trợ http_request")
+        return
+    end
     while true do
         local success, err = pcall(function()
             local data = getAccountData()
-            http_request({
-                Url = "http://192.168.1.37:5000/",
+            local response = http_request({
+                Url = SERVER_URL,
                 Method = "POST",
                 Headers = {["Content-Type"] = "application/json"},
                 Body = HttpService:JSONEncode(data)
             })
-            rconsoleprint("[✅ GỬI]: " .. data.username .. "\n")
+            if response.Success then
+                rconsoleprint("[✅ GỬI]: " .. data.username .. "\n")
+            else
+                rconsolewarn("[❌ LỖI GỬI]: Status " .. response.StatusCode .. " - " .. response.StatusMessage .. "\n")
+            end
         end)
-        if not success then rconsolewarn("[❌ LỖI]: " .. tostring(err)) end
+        if not success then
+            rconsolewarn("[❌ LỖI]: " .. tostring(err) .. "\n")
+        end
         wait(30)
     end
 end)
 
--- Vẽ bảng trạng thái từ nhiều acc (nhận từ server)
+local drawingObjects = {}
+local function clearDrawingObjects()
+    for _, obj in pairs(drawingObjects) do
+        obj:Remove()
+    end
+    drawingObjects = {}
+end
+
 local function drawStatusBoard(players)
+    clearDrawingObjects()
     local baseX, baseY = 350, 100
     local rowHeight = 22
     local colWidths = {150, 50, 60, 60, 80}
     local headers = {"Username", "CDK", "Mirror", "Valk", "God"}
 
-    -- Header
     for i, header in ipairs(headers) do
         local text = Drawing.new("Text")
         text.Text = header
@@ -145,9 +164,9 @@ local function drawStatusBoard(players)
         text.Color = Color3.fromRGB(255, 255, 255)
         text.Outline = true
         text.Visible = true
+        table.insert(drawingObjects, text)
     end
 
-    -- Rows
     for row, player in ipairs(players) do
         local y = baseY + row * rowHeight
         local values = {
@@ -166,27 +185,34 @@ local function drawStatusBoard(players)
             text.Color = (value == "✅" and Color3.fromRGB(0, 255, 0)) or (value == "❌" and Color3.fromRGB(255, 0, 0)) or Color3.fromRGB(255, 255, 255)
             text.Outline = true
             text.Visible = true
+            table.insert(drawingObjects, text)
         end
     end
 end
 
--- Lấy danh sách acc và hiển thị bảng mỗi 30s
 spawn(function()
+    if not http_request then
+        rconsolewarn("[❌ LỖI]: Executor không hỗ trợ http_request")
+        return
+    end
     while true do
         local success, result = pcall(function()
-            return http_request({
-                Url = "http://192.168.1.37:5000/status",
+            local response = http_request({
+                Url = SERVER_URL .. "status",
                 Method = "GET"
             })
+            if response.Success then
+                return response
+            else
+                error("GET failed: " .. response.StatusCode .. " - " .. response.StatusMessage)
+            end
         end)
-
         if success then
             local players = HttpService:JSONDecode(result.Body)
             drawStatusBoard(players)
         else
-            rconsolewarn("[❌ KHÔNG LẤY ĐƯỢC DANH SÁCH ACC]")
+            rconsolewarn("[❌ KHÔNG LẤY ĐƯỢC DANH SÁCH ACC]: " .. tostring(result) .. "\n")
         end
-
         wait(30)
     end
-end) 
+end)
