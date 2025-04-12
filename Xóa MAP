@@ -1,26 +1,54 @@
--- Script ẩn đồ họa trong Blox Fruits (chạy trên client)
+-- Script ẩn toàn bộ đồ họa trong Blox Fruits (chỉ cho client)
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
 
--- Ẩn tất cả các đối tượng trong Workspace
-for _, object in pairs(Workspace:GetDescendants()) do
-    if object:IsA("BasePart") then
-        object.Transparency = 1 -- Làm trong suốt
-    elseif object:IsA("Decal") or object:IsA("Texture") then
-        object.Transparency = 1
-    elseif object:IsA("ParticleEmitter") or object:IsA("Trail") then
-        object.Enabled = false -- Tắt hiệu ứng hạt
+-- Hàm ẩn hoặc vô hiệu hóa đối tượng
+local function hideObject(obj)
+    if obj:IsA("BasePart") then
+        obj.Transparency = 1 -- Làm trong suốt
+        obj.CanCollide = false -- Tắt va chạm
+    elseif obj:IsA("Model") then
+        for _, part in pairs(obj:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 1
+                part.CanCollide = false
+            end
+        end
+    elseif obj:IsA("Decal") or obj:IsA("Texture") then
+        obj.Transparency = 1
+    elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then
+        obj.Enabled = false
+    elseif obj:IsA("Sound") then
+        obj.Playing = false
     end
 end
 
--- Đặt màu nền thành xám
-Lighting.Ambient = Color3.fromRGB(128, 128, 128)
-Lighting.Brightness = 1
-Lighting.GlobalShadows = false
+-- Ẩn tất cả các đối tượng hiện tại
+for _, obj in pairs(Workspace:GetDescendants()) do
+    if obj ~= Players.LocalPlayer.Character then -- Không ẩn nhân vật của bạn
+        hideObject(obj)
+    end
+end
 
--- Tắt địa hình
+-- Theo dõi các đối tượng mới được thêm vào
+Workspace.DescendantAdded:Connect(function(obj)
+    if obj ~= Players.LocalPlayer.Character and not obj:IsDescendantOf(Players.LocalPlayer.Character) then
+        hideObject(obj)
+    end
+end)
+
+-- Xóa địa hình
 Workspace.Terrain:ClearAllChildren()
 
--- Tắt các hiệu ứng ánh sáng không cần thiết
+-- Đặt màu nền thành xám
+Lighting.Ambient = Color3.fromRGB(128, 128, 128) -- Màu xám
+Lighting.Brightness = 1
+Lighting.GlobalShadows = false
 Lighting.FogEnd = 100000
 Lighting.FogStart = 100000
+
+-- Đặt lại camera để tránh lỗi
+local Camera = Workspace.CurrentCamera
+Camera.CameraType = Enum.CameraType.Fixed
+Camera.CFrame = CFrame.new(Players.LocalPlayer.Character.HumanoidRootPart.Position + Vector3.new(0, 10, 0))
