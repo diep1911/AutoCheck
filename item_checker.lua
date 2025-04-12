@@ -12,13 +12,13 @@ screenGui.Parent = game:GetService("CoreGui")
 screenGui.Enabled = true
 
 local mainFrame = Instance.new("Frame", screenGui)
-mainFrame.Position = UDim2.new(0.2, 0, 0.05, 0) -- Hạ thấp 5% từ đỉnh
-mainFrame.Size = UDim2.new(0.6, 0, 0.3, 0) -- Rộng 60%, cao 30%
-mainFrame.BackgroundColor3 = Color3.fromRGB(255, 215, 0) -- Màu vàng
+mainFrame.Position = UDim2.new(0.02, 0, 0.02, 0) -- Gần góc trên bên trái (2% từ cạnh)
+mainFrame.Size = UDim2.new(0.25, 0, 0.15, 0) -- Rộng 25%, cao 15% (nhỏ hơn)
+mainFrame.BackgroundColor3 = Color3.fromRGB(255, 215, 0) -- Giữ màu vàng
 mainFrame.BorderSizePixel = 0
-mainFrame.BackgroundTransparency = 0.5 -- Tăng trong suốt cho mờ ảo
+mainFrame.BackgroundTransparency = 0.5 -- Giữ độ trong suốt
 mainFrame.Visible = true
-Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 14) -- Bo góc mềm hơn
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10) -- Giảm góc bo tròn cho phù hợp kích thước nhỏBo góc mềm hơn
 
 -- Thêm viền mượt
 local stroke = Instance.new("UIStroke", mainFrame)
@@ -30,10 +30,10 @@ local title = Instance.new("TextLabel", mainFrame)
 title.Size = UDim2.new(1, 0, 0, 30)
 title.Position = UDim2.new(0, 0, 0, 5)
 title.BackgroundTransparency = 1
-title.Text = "✨ Theo Dõi Vật Phẩm - " .. LocalPlayer.Name
+title.Text = "✨ Theo Dõi Vật Phẩm - by KHÔNG " .. LocalPlayer.Name
 title.TextColor3 = Color3.fromRGB(240, 240, 240)
 title.Font = Enum.Font.SourceSansPro -- Font phổ biến, fallback từ Gotham
-title.TextSize = 22
+title.TextSize = 40
 title.TextStrokeTransparency = 0.9
 title.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
 
