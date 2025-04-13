@@ -26,7 +26,6 @@ title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Font = Enum.Font.GothamSemibold
 title.TextSize = 18
 
--- Hàm tạo label cho mỗi item
 local function createItemLabel(name, index)
     local label = Instance.new("TextLabel", mainFrame)
     label.Size = UDim2.new(1, -20, 0, 20)
@@ -41,7 +40,6 @@ local function createItemLabel(name, index)
     return label
 end
 
--- Khởi tạo danh sách label
 local labels = {
     CDK = createItemLabel("CDK", 0),
     Valk = createItemLabel("Valk", 1),
@@ -53,55 +51,49 @@ local labels = {
 local function updateStatusUI(data)
     for name, label in pairs(labels) do
         local has = data.items[name]
-        if has ~= nil then  -- Kiểm tra giá trị có hợp lệ
-            if has then
-                label.Text = name .. ": 🟢"
-                label.TextColor3 = Color3.fromRGB(0, 255, 0)
-            else
-                label.Text = name .. ": 🔴"
-                label.TextColor3 = Color3.fromRGB(255, 50, 50)
-            end
+        if has then
+            label.Text = name .. ": 🟢"
+            label.TextColor3 = Color3.fromRGB(0, 255, 0)
+        else
+            label.Text = name .. ": 🔴"
+            label.TextColor3 = Color3.fromRGB(255, 50, 50)
         end
     end
 end
 
--- Hàm kiểm tra item tồn tại
+-- Hàm check item tồn tại ở bất kỳ nơi nào
 local function hasItem(itemName)
     local foundInBackpack = LocalPlayer.Backpack:FindFirstChild(itemName)
-    local foundInCharacter = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild(itemName)
+    local foundInCharacter = LocalPlayer.Character:FindFirstChild(itemName)
+    local foundInInventory = nil
 
     -- Kiểm tra trong Inventory (nếu có)
     local inv = LocalPlayer:FindFirstChild("Inventory") or LocalPlayer:FindFirstChild("ItemInventory")
-    local foundInInventory = inv and inv:FindFirstChild(itemName)
+    if inv then
+        foundInInventory = inv:FindFirstChild(itemName)
+    end
 
     return foundInBackpack or foundInCharacter or foundInInventory
 end
 
--- Hàm lấy thông tin account
+-- Hàm lấy thông tin acc
 local function getAccountData()
-    local items = {
-        CDK = false,
-        Valk = false,
-        Mirror = false,
-        Godhuman = false
-    }
-
-    -- Kiểm tra trong Backpack và Character
-    for itemName, _ in pairs(items) do
-        items[itemName] = hasItem(itemName)
-    end
-
     return {
         username = LocalPlayer.Name,
-        level = LocalPlayer:FindFirstChild("Data").Level.Value,
-        beli = LocalPlayer:FindFirstChild("Data").Beli.Value,
-        fragment = LocalPlayer:FindFirstChild("Data").Fragments.Value,
+        level = LocalPlayer.Data.Level.Value,
+        beli = LocalPlayer.Data.Beli.Value,
+        fragment = LocalPlayer.Data.Fragments.Value,
         timestamp = os.time(),
-        items = items
+        items = {
+            CDK = (LocalPlayer.Backpack:FindFirstChild("Cursed Dual Katana") ~= nil) or (LocalPlayer.Character:FindFirstChild("Cursed Dual Katana") ~= nil),
+            Valk = (LocalPlayer.Backpack:FindFirstChild("Valkyrie Helm") ~= nil) or (LocalPlayer.Character:FindFirstChild("Valkyrie Helm") ~= nil),
+            Mirror = (LocalPlayer.Backpack:FindFirstChild("Mirror Fractal") ~= nil) or (LocalPlayer.Character:FindFirstChild("Mirror Fractal") ~= nil),
+            Godhuman = (LocalPlayer.Backpack:FindFirstChild("Godhuman") ~= nil) or (LocalPlayer.Character:FindFirstChild("Godhuman") ~= nil)
+        }
     }
 end
 
--- Cập nhật UI mỗi 10 giây
+-- Cập nhật UI mỗi 10s
 spawn(function()
     while true do
         local data = getAccountData()
@@ -110,7 +102,7 @@ spawn(function()
     end
 end)
 
--- Gửi dữ liệu về server Flask mỗi 60 giây
+-- Gửi dữ liệu về server Flask mỗi 60s
 spawn(function()
     while true do
         local success, err = pcall(function()
@@ -134,7 +126,7 @@ spawn(function()
     end
 end)
 
--- Phần bảng trạng thái (menu)
+-- Phần bảng trạng thái (menu) sửa lỗi
 local drawingObjects = {} -- Lưu các Drawing objects
 
 -- Xóa các object cũ
@@ -160,7 +152,7 @@ local function drawStatusBoard(players)
 
     local baseX, baseY = 850, 10 -- Góc trên bên phải (điều chỉnh theo màn hình)
     local rowHeight = 25
-    local colWidths = {200, 60, 80, 60, 60} -- Chiều rộng cột sửa thành 60 cho Godhuman
+    local colWidths = {200, 60, 80, 60, 80} -- Chiều rộng cột
     local headers = {"Username", "CDK", "Mirror", "Valk", "God"}
     local padding = 10 -- Khoảng cách khung so với bảng
 
@@ -201,10 +193,10 @@ local function drawStatusBoard(players)
         local y = baseY + row * rowHeight
         local values = {
             player.username or "Unknown",
-            player.items.CDK and "✅" or "❌",
-            player.items.Mirror and "✅" or "❌",
-            player.items.Valk and "✅" or "❌",
-            player.items.Godhuman and "✅" or "❌"
+            player.items and player.items.CDK and "✅" or "❌",
+            player.items and player.items.Mirror and "✅" or "❌",
+            player.items and player.items.Valk and "✅" or "❌",
+            player.items and player.items.Godhuman and "✅" or "❌"
         }
 
         for i, value in ipairs(values) do
@@ -220,7 +212,7 @@ local function drawStatusBoard(players)
     end
 end
 
--- Lấy danh sách acc và hiển thị bảng mỗi 30 giây
+-- Lấy danh sách acc và hiển thị bảng mỗi 30s
 spawn(function()
     if not http_request then
         rconsolewarn("[❌ LỖI]: Executor không hỗ trợ http_request")
@@ -246,4 +238,4 @@ spawn(function()
         end
         wait(30)
     end
-end)
+end) 
