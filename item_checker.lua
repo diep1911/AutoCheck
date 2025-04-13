@@ -26,6 +26,7 @@ title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Font = Enum.Font.GothamSemibold
 title.TextSize = 18
 
+-- Hàm tạo label cho mỗi item
 local function createItemLabel(name, index)
     local label = Instance.new("TextLabel", mainFrame)
     label.Size = UDim2.new(1, -20, 0, 20)
@@ -76,7 +77,7 @@ local function hasItem(itemName)
     return foundInBackpack or foundInCharacter or foundInInventory
 end
 
--- Hàm lấy thông tin acc
+-- Hàm lấy thông tin account
 local function getAccountData()
     local items = {
         CDK = false,
