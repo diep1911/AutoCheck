@@ -61,6 +61,21 @@ local function updateStatusUI(data)
     end
 end
 
+-- Hàm check item tồn tại ở bất kỳ nơi nào
+local function hasItem(itemName)
+    local foundInBackpack = LocalPlayer.Backpack:FindFirstChild(itemName)
+    local foundInCharacter = LocalPlayer.Character:FindFirstChild(itemName)
+    local foundInInventory = nil
+
+    -- Kiểm tra trong Inventory (nếu có)
+    local inv = LocalPlayer:FindFirstChild("Inventory") or LocalPlayer:FindFirstChild("ItemInventory")
+    if inv then
+        foundInInventory = inv:FindFirstChild(itemName)
+    end
+
+    return foundInBackpack or foundInCharacter or foundInInventory
+end
+
 -- Hàm lấy thông tin acc
 local function getAccountData()
     return {
