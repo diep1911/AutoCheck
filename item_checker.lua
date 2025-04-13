@@ -64,32 +64,36 @@ end
 -- Hàm check item tồn tại ở bất kỳ nơi nào
 local function hasItem(itemName)
     local foundInBackpack = LocalPlayer.Backpack:FindFirstChild(itemName)
-    local foundInCharacter = LocalPlayer.Character:FindFirstChild(itemName)
-    local foundInInventory = nil
+    local foundInCharacter = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild(itemName)
 
     -- Kiểm tra trong Inventory (nếu có)
     local inv = LocalPlayer:FindFirstChild("Inventory") or LocalPlayer:FindFirstChild("ItemInventory")
-    if inv then
-        foundInInventory = inv:FindFirstChild(itemName)
-    end
+    local foundInInventory = inv and inv:FindFirstChild(itemName)
 
     return foundInBackpack or foundInCharacter or foundInInventory
 end
 
 -- Hàm lấy thông tin acc
 local function getAccountData()
+    local items = {
+        CDK = false,
+        Valk = false,
+        Mirror = false,
+        Godhuman = false
+    }
+
+    -- Kiểm tra trong Backpack và Character
+    for itemName, _ in pairs(items) do
+        items[itemName] = hasItem(itemName)
+    end
+
     return {
         username = LocalPlayer.Name,
         level = LocalPlayer.Data.Level.Value,
         beli = LocalPlayer.Data.Beli.Value,
         fragment = LocalPlayer.Data.Fragments.Value,
         timestamp = os.time(),
-        items = {
-            CDK = (LocalPlayer.Backpack:FindFirstChild("Cursed Dual Katana") ~= nil) or (LocalPlayer.Character:FindFirstChild("Cursed Dual Katana") ~= nil),
-            Valk = (LocalPlayer.Backpack:FindFirstChild("Valkyrie Helm") ~= nil) or (LocalPlayer.Character:FindFirstChild("Valkyrie Helm") ~= nil),
-            Mirror = (LocalPlayer.Backpack:FindFirstChild("Mirror Fractal") ~= nil) or (LocalPlayer.Character:FindFirstChild("Mirror Fractal") ~= nil),
-            Godhuman = (LocalPlayer.Backpack:FindFirstChild("Godhuman") ~= nil) or (LocalPlayer.Character:FindFirstChild("Godhuman") ~= nil)
-        }
+        items = items
     }
 end
 
