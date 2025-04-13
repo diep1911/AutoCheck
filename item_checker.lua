@@ -40,6 +40,7 @@ local function createItemLabel(name, index)
     return label
 end
 
+-- Khởi tạo danh sách label
 local labels = {
     CDK = createItemLabel("CDK", 0),
     Valk = createItemLabel("Valk", 1),
@@ -51,17 +52,19 @@ local labels = {
 local function updateStatusUI(data)
     for name, label in pairs(labels) do
         local has = data.items[name]
-        if has then
-            label.Text = name .. ": 🟢"
-            label.TextColor3 = Color3.fromRGB(0, 255, 0)
-        else
-            label.Text = name .. ": 🔴"
-            label.TextColor3 = Color3.fromRGB(255, 50, 50)
+        if has ~= nil then  -- Kiểm tra giá trị có hợp lệ
+            if has then
+                label.Text = name .. ": 🟢"
+                label.TextColor3 = Color3.fromRGB(0, 255, 0)
+            else
+                label.Text = name .. ": 🔴"
+                label.TextColor3 = Color3.fromRGB(255, 50, 50)
+            end
         end
     end
 end
 
--- Hàm check item tồn tại ở bất kỳ nơi nào
+-- Hàm kiểm tra item tồn tại
 local function hasItem(itemName)
     local foundInBackpack = LocalPlayer.Backpack:FindFirstChild(itemName)
     local foundInCharacter = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild(itemName)
@@ -89,15 +92,15 @@ local function getAccountData()
 
     return {
         username = LocalPlayer.Name,
-        level = LocalPlayer.Data.Level.Value,
-        beli = LocalPlayer.Data.Beli.Value,
-        fragment = LocalPlayer.Data.Fragments.Value,
+        level = LocalPlayer:FindFirstChild("Data").Level.Value,
+        beli = LocalPlayer:FindFirstChild("Data").Beli.Value,
+        fragment = LocalPlayer:FindFirstChild("Data").Fragments.Value,
         timestamp = os.time(),
         items = items
     }
 end
 
--- Cập nhật UI mỗi 10s
+-- Cập nhật UI mỗi 10 giây
 spawn(function()
     while true do
         local data = getAccountData()
@@ -106,7 +109,7 @@ spawn(function()
     end
 end)
 
--- Gửi dữ liệu về server Flask mỗi 60s
+-- Gửi dữ liệu về server Flask mỗi 60 giây
 spawn(function()
     while true do
         local success, err = pcall(function()
@@ -130,7 +133,7 @@ spawn(function()
     end
 end)
 
--- Phần bảng trạng thái (menu) sửa lỗi
+-- Phần bảng trạng thái (menu)
 local drawingObjects = {} -- Lưu các Drawing objects
 
 -- Xóa các object cũ
@@ -156,7 +159,7 @@ local function drawStatusBoard(players)
 
     local baseX, baseY = 850, 10 -- Góc trên bên phải (điều chỉnh theo màn hình)
     local rowHeight = 25
-    local colWidths = {200, 60, 80, 60, 80} -- Chiều rộng cột
+    local colWidths = {200, 60, 80, 60, 60} -- Chiều rộng cột sửa thành 60 cho Godhuman
     local headers = {"Username", "CDK", "Mirror", "Valk", "God"}
     local padding = 10 -- Khoảng cách khung so với bảng
 
@@ -197,10 +200,10 @@ local function drawStatusBoard(players)
         local y = baseY + row * rowHeight
         local values = {
             player.username or "Unknown",
-            player.items and player.items.CDK and "✅" or "❌",
-            player.items and player.items.Mirror and "✅" or "❌",
-            player.items and player.items.Valk and "✅" or "❌",
-            player.items and player.items.Godhuman and "✅" or "❌"
+            player.items.CDK and "✅" or "❌",
+            player.items.Mirror and "✅" or "❌",
+            player.items.Valk and "✅" or "❌",
+            player.items.Godhuman and "✅" or "❌"
         }
 
         for i, value in ipairs(values) do
@@ -216,7 +219,7 @@ local function drawStatusBoard(players)
     end
 end
 
--- Lấy danh sách acc và hiển thị bảng mỗi 30s
+-- Lấy danh sách acc và hiển thị bảng mỗi 30 giây
 spawn(function()
     if not http_request then
         rconsolewarn("[❌ LỖI]: Executor không hỗ trợ http_request")
