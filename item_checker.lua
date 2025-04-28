@@ -182,3 +182,18 @@ local function drawStatusBoard(players)
         table.insert(drawingObjects, text)
     end
 
+    -- Nội dung bảng
+    for i, player in ipairs(players) do
+        local yPos = baseY + rowHeight * i
+        for j, header in ipairs(headers) do
+            local text = Drawing.new("Text")
+            text.Text = player[header] or "" -- Tự động điền các giá trị tương ứng
+            text.Position = Vector2.new(baseX + sumColWidths(colWidths, j - 1), yPos)
+            text.Size = 16
+            text.Color = Color3.fromRGB(255, 255, 255)
+            text.Outline = true
+            text.Visible = true
+            table.insert(drawingObjects, text)
+        end
+    end
+end
