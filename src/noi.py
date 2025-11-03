@@ -8,7 +8,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Con
 from datetime import datetime, date
 from io import BytesIO
 import pandas as pd
-import sqlite3
+import sqlite3  # Có sẵn trong Python, không cần cài
 import pytz
 from flask import Flask
 import threading
